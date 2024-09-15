@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Blue Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8; /* Light blue background */
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            height: 400px; /* Fixed height for scrolling */
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+            word-wrap: break-word;
+            display: flex;
+            align-items: center;
+        }
+
+        .sender-message {
+            background-color: #e0f7fa; /* Light cyan */
+            color: #000;
+            align-self: flex-start;
+        }
+
+        .receiver-message {
+            background-color: #03a9f4; /* Light blue */
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-container select, .input-container input, .input-container button {
+            margin-right: 10px;
+        }
+
+        .input-container select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .input-container input {
+            width: calc(100% - 140px); /* Adjust width to accommodate select and button */
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .input-container button {
+            padding: 8px 16px;
+            background-color: #03a9f4; /* Light blue */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-container button:hover {
+            background-color: #0288d1; /* Darker blue */
+        }
+
+        /* Hide scrollbar */
+        .message-container::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div id="message-container" class="message-container">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <div class="input-container">
+            <select id="api-select">
+                <option value="gpt">GPT</option>
+                <option value="gemini">Gemini</option>
+                <option value="copilot">Copilot</option>
+            </select>
+            <input id="message-input" type="text" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('send-button').addEventListener('click', async () => {
+            const input = document.getElementById('message-input');
+            const messageText = input.value.trim();
+            const apiSelect = document.getElementById('api-select').value;
+
+            if (messageText === '') return; // Ignore empty messages
+
+            // Create and append the sender message
+            const messageContainer = document.getElementById('message-container');
+            const senderMessage = document.createElement('div');
+            senderMessage.className = 'message sender-message';
+            senderMessage.innerHTML = `<img src="https://www.w3schools.com/w3images/avatar6.png" alt="Sender Avatar" class="avatar"> ${messageText}`;
+            messageContainer.appendChild(senderMessage);
+
+            // Scroll to the bottom of the chat
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+
+            // Clear the input field
+            input.value = '';
+
+            // Get response from the selected API
+            let responseText;
+            try {
+                responseText = await getApiResponse(apiSelect, messageText);
+            } catch (error) {
+                responseText = 'Error: Unable to get a response.';
+            }
+
+            // Append receiver message
+            const receiverMessage = document.createElement('div');
+            receiverMessage.className = 'message receiver-message';
+            receiverMessage.innerHTML = `<img src="https://www.w3schools.com/w3images/avatar5.png" alt="Receiver Avatar" class="avatar"> ${responseText}`;
+            messageContainer.appendChild(receiverMessage);
+
+            // Scroll to the bottom of the chat
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        });
+
+        async function getApiResponse(api, message) {
+            const apiEndpoints = {
+                gpt: 'https://api.openai.com/v1/completions',
+                gemini: 'https://api.google.com/v1/gemini',
+                copilot: 'https://api.github.com/copilot'
+            };
+
+            const apiKeys = {
+                gpt: 'YOUR_GPT_API_KEY',
+                gemini: 'YOUR_GEMINI_API_KEY',
+                copilot: 'YOUR_COPILOT_API_KEY'
+            };
+
+            const url = apiEndpoints[api];
+            const apiKey = apiKeys[api];
+
+            let data;
+
+            switch (api) {
+                case 'gpt':
+                    data = {
+                        prompt: message,
+                        max_tokens: 150
+                    };
+                    break;
+                case 'gemini':
+                    data = {
+                        query: message
+                    };
+                    break;
+                case 'copilot':
+                    data = {
+                        code: message
+                    };
+                    break;
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            // Adjust based on actual API response structure
+            switch (api) {
+                case 'gpt':
+                    return result.choices[0].text;
+                case 'gemini':
+                    return result.response;
+                case 'copilot':
+                    return result.suggestion;
+            }
+        }
+
+        document.getElementById('message-input').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('send-button').click();
+            }
+        });
+    </script>
+</body>
+
+</html>

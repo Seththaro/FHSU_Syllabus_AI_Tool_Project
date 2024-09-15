@@ -1,0 +1,38 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #e9f5ff; /* Light blue background */
+}
+
+.chat-box {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #007bff; /* Primary blue color */
+    color: white;
+}
+
+.chat-output {
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f0f8ff; /* Lighter blue for the chat area */
+    min-height: 150px;
+    overflow-y: auto;
+}
+
+textarea {
+    resize: none;
+}
+
+.btn-primary {
+    background-color: #0056b3; /* Darker blue */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #004494; /* Even darker blue for hover effect */
+}
